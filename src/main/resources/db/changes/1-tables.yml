@@ -1,5 +1,36 @@
 databaseChangeLog:
     - changeSet:
+          id: create-sec-users
+          author: insideq
+          changes:
+              - createTable:
+                    tableName: sec_users
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGINT
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                                  primaryKeyName: pk_users
+                        - column:
+                              name: login
+                              type: VARCHAR(20)
+                              constraints:
+                                  nullable: false
+                                  unique: true
+                        - column:
+                              name: password
+                              type: VARCHAR(60)
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: role
+                              type: VARCHAR(20)
+                              constraints:
+                                  nullable: false
+
+    - changeSet:
           id: create-wiki-pages
           author: insideq
           changes:
@@ -61,7 +92,7 @@ databaseChangeLog:
 
     - changeSet:
           id: create-tags
-          author: user
+          author: insideq
           changes:
               - createTable:
                     tableName: tags
@@ -82,7 +113,7 @@ databaseChangeLog:
 
     - changeSet:
           id: create-wiki-page-tags
-          author: user
+          author: insideq
           changes:
               - createTable:
                     tableName: wiki_page_tags
@@ -118,7 +149,7 @@ databaseChangeLog:
 
     - changeSet:
           id: create-tag-requests
-          author: user
+          author: insideq
           changes:
               - createTable:
                     tableName: tag_requests
@@ -156,7 +187,7 @@ databaseChangeLog:
 
     - changeSet:
           id: create-delete-requests
-          author: user
+          author: insideq
           changes:
               - createTable:
                     tableName: delete_requests
@@ -193,3 +224,26 @@ databaseChangeLog:
                               type: TIMESTAMP
                               constraints:
                                   nullable: false
+
+    - changeSet:
+          id: populate-admin-user
+          author: insideq
+          changes:
+              - insert:
+                    tableName: sec_users
+                    columns:
+                        - column:
+                              name: id
+                              valueComputed: "nextval('hibernate_sequence')"
+                        - column:
+                              name: login
+                              value: "admin"
+                        - column:
+                              name: password
+                              value: "$2a$10$cbt58ZExAkDCmXS3X3DGouRm0EB9rnsHTnmD7.2axbqZju.2FYIXi"
+                        - column:
+                              name: role
+                              value: "ADMIN"
+          rollback:
+              - sql:
+                    sql: "DELETE FROM sec_users WHERE login = 'admin'"
