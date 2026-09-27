@@ -1,0 +1,19 @@
+{
+    "name": "wikisystem",
+    "version": "1.0.0",
+    "description": "Wiki-system project - Spring Boot + React",
+    "type": "module",
+    "scripts": {
+        "prepare": "husky"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/insideq/wiki-project.git"
+    },
+    "license": "ISC",
+    "devDependencies": {
+        "@commitlint/cli": "^21.2.3",
+        "@commitlint/config-conventional": "^21.2.3",
+        "husky": "^9.1.7"
+    }
+}

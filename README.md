@@ -1,3 +1,42 @@
+# WikiSystem
+
+![CI](https://github.com/insideq/wiki-project/actions/workflows/ci.yml/badge.svg)
+![Commit Lint](https://github.com/insideq/wiki-project/actions/workflows/commit-lint.yml/badge.svg)
+
+Wiki-система на Spring Boot 3 + React.
+
+## Технологии
+
+**Backend:**
+
+- Java 21
+- Spring Boot 3.5.8
+- Spring Security + JWT
+- Spring Data JPA
+- Liquibase
+- H2 (dev) / PostgreSQL (prod)
+- OpenAPI/Swagger
+
+**Frontend** (в разработке):
+
+- React 18
+- Vite
+
+**Инфраструктура:**
+
+- Gradle
+- GitHub Actions (CI/CD)
+- Checkstyle, JaCoCo
+
+## Документация API
+
+После запуска: http://localhost:8080/swagger-ui/index.html
+
+## Запуск
+
+```bash
+./gradlew bootRun
+
 Swagger UI URL:
 http://localhost:8080/swagger-ui/index.html
 
@@ -18,3 +57,4 @@ https://bcrypt-generator.com
 
 Про Spring Security:
 https://habr.com/ru/articles/346628/
+```
