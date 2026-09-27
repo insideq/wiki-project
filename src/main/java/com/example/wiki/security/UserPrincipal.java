@@ -10,19 +10,27 @@ import com.example.wiki.entity.UserEntity;
 import com.example.wiki.entity.UserRole;
 
 public class UserPrincipal implements UserDetails {
+
     private final Long id;
     private final String username;
     private final String password;
     private final Set<? extends GrantedAuthority> roles;
     private final boolean active;
+    private final UserEntity user;
 
     private UserPrincipal(
-            Long id, String username, String password, Set<? extends GrantedAuthority> roles, boolean active) {
+            Long id,
+            String username,
+            String password,
+            Set<? extends GrantedAuthority> roles,
+            boolean active,
+            UserEntity user) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.roles = roles;
         this.active = active;
+        this.user = user;
     }
 
     public UserPrincipal(UserEntity user) {
@@ -31,14 +39,19 @@ public class UserPrincipal implements UserDetails {
         this.password = user.getPassword();
         this.roles = Set.of(user.getRole());
         this.active = true;
+        this.user = user;
     }
 
     public static UserPrincipal anonymous() {
-        return new UserPrincipal(-1L, "anonymous", null, Set.of(UserRole.ANONYMOUS), true);
+        return new UserPrincipal(-1L, "anonymous", null, Set.of(UserRole.ANONYMOUS), true, null);
     }
 
     public Long getId() {
         return id;
+    }
+
+    public UserEntity getUser() {
+        return user;
     }
 
     @Override
