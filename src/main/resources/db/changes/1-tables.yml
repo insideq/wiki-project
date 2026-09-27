@@ -1,0 +1,195 @@
+databaseChangeLog:
+    - changeSet:
+          id: create-wiki-pages
+          author: insideq
+          changes:
+              - createTable:
+                    tableName: wiki_pages
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGINT
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                                  primaryKeyName: pk_wiki_pages
+                        - column:
+                              name: title
+                              type: VARCHAR(200)
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: content
+                              type: CLOB
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: author_id
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+                                  foreignKeyName: fk_wiki_pages_author
+                                  references: sec_users(id)
+                        - column:
+                              name: visibility
+                              type: VARCHAR(20)
+                              defaultValue: "PUBLIC"
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: edit_policy
+                              type: VARCHAR(20)
+                              defaultValue: "OPEN"
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: status
+                              type: VARCHAR(30)
+                              defaultValue: "ACTIVE"
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: created_at
+                              type: TIMESTAMP
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: updated_at
+                              type: TIMESTAMP
+                              constraints:
+                                  nullable: false
+
+    - changeSet:
+          id: create-tags
+          author: user
+          changes:
+              - createTable:
+                    tableName: tags
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGINT
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                                  primaryKeyName: pk_tags
+                        - column:
+                              name: name
+                              type: VARCHAR(50)
+                              constraints:
+                                  nullable: false
+                                  unique: true
+
+    - changeSet:
+          id: create-wiki-page-tags
+          author: user
+          changes:
+              - createTable:
+                    tableName: wiki_page_tags
+                    columns:
+                        - column:
+                              name: page_id
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: tag_id
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+              - addPrimaryKey:
+                    tableName: wiki_page_tags
+                    columnNames: page_id, tag_id
+                    constraintName: pk_wiki_page_tags
+              - addForeignKeyConstraint:
+                    baseTableName: wiki_page_tags
+                    baseColumnNames: page_id
+                    referencedTableName: wiki_pages
+                    referencedColumnNames: id
+                    constraintName: fk_wpt_page
+                    onDelete: CASCADE
+              - addForeignKeyConstraint:
+                    baseTableName: wiki_page_tags
+                    baseColumnNames: tag_id
+                    referencedTableName: tags
+                    referencedColumnNames: id
+                    constraintName: fk_wpt_tag
+                    onDelete: CASCADE
+
+    - changeSet:
+          id: create-tag-requests
+          author: user
+          changes:
+              - createTable:
+                    tableName: tag_requests
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGINT
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                                  primaryKeyName: pk_tag_requests
+                        - column:
+                              name: name
+                              type: VARCHAR(50)
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: requested_by
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+                                  foreignKeyName: fk_tag_requests_user
+                                  references: sec_users(id)
+                        - column:
+                              name: status
+                              type: VARCHAR(20)
+                              defaultValue: "PENDING"
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: created_at
+                              type: TIMESTAMP
+                              constraints:
+                                  nullable: false
+
+    - changeSet:
+          id: create-delete-requests
+          author: user
+          changes:
+              - createTable:
+                    tableName: delete_requests
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGINT
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                                  primaryKeyName: pk_delete_requests
+                        - column:
+                              name: page_id
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+                                  foreignKeyName: fk_delete_requests_page
+                                  references: wiki_pages(id)
+                        - column:
+                              name: requested_by
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+                                  foreignKeyName: fk_delete_requests_user
+                                  references: sec_users(id)
+                        - column:
+                              name: status
+                              type: VARCHAR(20)
+                              defaultValue: "PENDING"
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: created_at
+                              type: TIMESTAMP
+                              constraints:
+                                  nullable: false

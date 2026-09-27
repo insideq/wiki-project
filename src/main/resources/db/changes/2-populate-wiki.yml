@@ -1,0 +1,20 @@
+databaseChangeLog:
+    - changeSet:
+          id: populate-tags
+          author: insideq
+          changes:
+              - insert:
+                    tableName: tags
+                    columns:
+                        - column: { name: id, valueComputed: "nextval('hibernate_sequence')" }
+                        - column: { name: name, value: "Spring" }
+              - insert:
+                    tableName: tags
+                    columns:
+                        - column: { name: id, valueComputed: "nextval('hibernate_sequence')" }
+                        - column: { name: name, value: "Java" }
+              - insert:
+                    tableName: tags
+                    columns:
+                        - column: { name: id, valueComputed: "nextval('hibernate_sequence')" }
+                        - column: { name: name, value: "Wiki" }

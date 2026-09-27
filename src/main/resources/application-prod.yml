@@ -1,0 +1,12 @@
+# Available levels: TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
+logging:
+    level:
+        com.example.wiki.*: INFO
+spring:
+    datasource:
+        url: jdbc:postgresql://127.0.0.1/wiki
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+    jpa:
+        show-sql: false

@@ -1,0 +1,69 @@
+{
+    "files.autoSave": "onFocusChange",
+    "files.eol": "\n",
+    "editor.detectIndentation": false,
+    "editor.formatOnType": false,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+        // "source.sortImports": "explicit"
+    },
+    "editor.snippetSuggestions": "bottom",
+    "debug.toolBarLocation": "commandCenter",
+    "debug.showVariableTypes": true,
+    "errorLens.gutterIconsEnabled": true,
+    "errorLens.messageEnabled": false,
+    "prettier.tabWidth": 4,
+    "prettier.singleQuote": false,
+    "prettier.printWidth": 120,
+    "prettier.trailingComma": "es5",
+    "prettier.useTabs": false,
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[java]": {
+        "editor.semanticHighlighting.enabled": true,
+        "editor.pasteAs.enabled": false,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+            // "source.sortImports": "explicit"
+        }
+    },
+    "gradle.nestedProjects": true,
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.saveActions.organizeImports": true,
+    "java.dependency.packagePresentation": "hierarchical",
+    "java.codeGeneration.hashCodeEquals.useJava7Objects": true,
+    "java.import.gradle.enabled": true,
+    "java.import.gradle.offline.enabled": false,
+    "java.import.gradle.wrapper.enabled": true,
+    "java.compile.nullAnalysis.mode": "disabled",
+    "java.import.generatesMetadataFilesAtProjectRoot": false,
+    "java.completion.favoriteStaticMembers": [
+        "org.junit.Assert.*",
+        "org.junit.Assume.*",
+        "org.junit.jupiter.api.Assertions.*",
+        "org.mockito.Mockito.*",
+        "org.mockito.ArgumentMatchers.*",
+        "org.mockito.Answers.*",
+        "org.hamcrest.MatcherAssert.*",
+        "org.hamcrest.Matchers.*"
+    ],
+    "spring-boot.ls.problem.boot2.JAVA_CONSTRUCTOR_PARAMETER_INJECTION": "WARNING",
+    "spring.initializr.defaultLanguage": "Java"
+}

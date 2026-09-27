@@ -1,0 +1,18 @@
+# Available levels: TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
+logging:
+    level:
+        com.example.wiki.*: DEBUG
+spring:
+    datasource:
+        url: jdbc:h2:file:./data
+        username: sa
+        password: sa
+        driver-class-name: org.h2.Driver
+    h2:
+        console:
+            enabled: true
+    jpa:
+        show-sql: false
+        properties:
+            hibernate:
+                format-sql: false

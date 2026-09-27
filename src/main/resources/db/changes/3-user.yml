@@ -1,0 +1,65 @@
+databaseChangeLog:
+    - changeSet:
+          id: create-user-sequence
+          author: insideq
+          changes:
+              - createSequence:
+                    sequenceName: sec_users_seq
+                    startValue: 1
+                    incrementBy: 50
+                    minValue: 1
+                    cycle: false
+                    dataType: bigint
+    - changeSet:
+          id: create-user-table
+          author: insideq
+          changes:
+              - createTable:
+                    tableName: sec_users
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGINT
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                                  primaryKeyName: pk_users
+                        - column:
+                              name: login
+                              type: VARCHAR(20)
+                              constraints:
+                                  nullable: false
+                                  unique: true
+                        - column:
+                              name: password
+                              type: VARCHAR(60)
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: role
+                              type: VARCHAR(20)
+                              constraints:
+                                  nullable: false
+    - changeSet:
+          id: populate-user-table
+          author: insideq
+          changes:
+              - insert:
+                    tableName: sec_users
+                    columns:
+                        - column:
+                              name: id
+                              valueComputed: "nextval('sec_users_seq')"
+                        - column:
+                              name: login
+                              value: "admin"
+                        - column:
+                              name: password
+                              value: "$2a$10$cbt58ZExAkDCmXS3X3DGouRm0EB9rnsHTnmD7.2axbqZju.2FYIXi"
+                        - column:
+                              name: role
+                              value: "ADMIN"
+                    where: "NOT EXISTS (SELECT 1 FROM sec_users WHERE login = 'admin')"
+          rollback:
+              - sql:
+                    sql: "DELETE FROM sec_users"

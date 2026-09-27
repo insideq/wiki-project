@@ -1,0 +1,23 @@
+spring:
+    main:
+        banner-mode: off
+    application:
+        name: wiki
+    profiles:
+        active: dev
+    jpa:
+        hibernate:
+            ddl-auto: validate
+        open-in-view: false
+    liquibase:
+        enabled: true
+        drop-first: false
+        change-log: classpath:db/master.yml
+server:
+    port: 8080
+    servlet:
+        session:
+            tracking-modes: cookie
+jwt:
+    secret: mySecretKeyWhichIsVeryLongAndSecure1234567890
+    issuer: wiki

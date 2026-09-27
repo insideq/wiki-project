@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Server",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.example.wiki.WikiApplication",
+            "projectName": "wiki"
+        }
+    ]
+}

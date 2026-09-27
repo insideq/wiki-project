@@ -1,0 +1,12 @@
+logging:
+    level:
+        com.example.wiki: DEBUG
+
+spring:
+    profiles:
+        active: dev
+    jpa:
+        hibernate:
+            ddl-auto: create-drop
+    liquibase:
+        enabled: false

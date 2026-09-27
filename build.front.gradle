@@ -1,0 +1,38 @@
+apply plugin: "com.github.node-gradle.node"
+
+logger.quiet("Configure front builder")
+
+ext {
+    frontDir = file("${project.projectDir}/front")
+    if (!frontDir.exists()) {
+        throw new GradleException("Frontend app directory is not exists")
+    }
+    logger.quiet("Webapp dir is {}", frontDir.toString())
+}
+
+node {
+    version = "22.17.1"
+    npmVersion = "10.9.2"
+    download = true
+}
+
+tasks.register("frontDepsInstall", NpmTask) {
+    group = "front"
+    description = "Installs dependencies from package.json"
+    logger.quiet(description)
+    workingDir = frontDir
+    args = ["install"]
+}
+
+tasks.register("frontBuild", NpmTask) {
+    group = "front"
+    description = "Build frontend webapp"
+    logger.quiet(description)
+    workingDir = frontDir
+    dependsOn frontDepsInstall
+    args = ["run", "build"]
+}
+
+if (frontDir.exists()) {
+    processResources.finalizedBy frontBuild
+}

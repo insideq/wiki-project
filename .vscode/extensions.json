@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    // fronted
+    "AndersEAndersen.html-class-suggestions",
+    "dbaeumer.vscode-eslint",
+    // backend
+    "vscjava.vscode-java-pack",
+    "vmware.vscode-boot-dev-pack",
+    "vscjava.vscode-gradle",
+    "redhat.vscode-xml"
+  ]
+}

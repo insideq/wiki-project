@@ -1,0 +1,141 @@
+plugins {
+    id "java"
+    id "org.springframework.boot" version "3.5.8"
+    id "io.spring.dependency-management" version "1.1.7"
+    id "com.github.node-gradle.node" version "7.1.0" apply false
+    id "org.liquibase.gradle" version "2.2.2" apply false
+    id "checkstyle"
+    id "jacoco"
+}
+
+group = "com.example"
+version = "0.0.1-SNAPSHOT"
+description = "Wiki system"
+def jdkVersion = "21"
+
+defaultTasks "bootRun"
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    archiveFileName = String.format("%s-%s.jar", rootProject.name, version)
+}
+
+assert System.properties["java.specification.version"] == jdkVersion
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(jdkVersion)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    springdocVersion = "2.8.11"
+    h2Version = "2.4.240"
+    postgresVersion = "42.7.8"
+    liquibaseVersion = "4.33.0"
+    mockitoVersion = "5.19.0"
+    jjwtVersion = "0.13.0"
+
+    springProfiles = []
+    springProfiles.add("front")
+    if (project.hasProperty("prod")) {
+        springProfiles.add("prod")
+    } else {
+        springProfiles.add("dev")
+    }
+    currentProfiles = springProfiles.join(",")
+    logger.quiet("Current profiles are: " + currentProfiles)
+}
+
+configurations {
+    mockitoAgent
+}
+
+// ВРЕМЕННО: фронт не подключён
+// apply from: "build.front.gradle"
+
+if (springProfiles.contains("dev")) {
+    apply from: "build.migrations.gradle"
+}
+
+dependencies {
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    runtimeOnly "org.liquibase:liquibase-core:${liquibaseVersion}"
+
+    if (springProfiles.contains("prod")) {
+        runtimeOnly "org.postgresql:postgresql:${postgresVersion}"
+    } else {
+        runtimeOnly "org.postgresql:postgresql:${postgresVersion}"
+        runtimeOnly "com.h2database:h2:${h2Version}"
+    }
+
+    implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+
+    implementation "org.springframework.boot:spring-boot-starter-security"
+    implementation "org.springframework.boot:spring-boot-starter-aop"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.security:spring-security-test"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+
+    mockitoAgent("org.mockito:mockito-core:${mockitoVersion}") {
+        transitive = false
+    }
+}
+
+bootRun {
+    def currentArgs = ["--spring.profiles.active=" + currentProfiles]
+    if (project.hasProperty("args")) {
+        currentArgs.addAll(project.args.tokenize())
+    }
+    args currentArgs
+}
+
+test {
+    useJUnitPlatform()
+    jvmArgs += "-Xshare:off"
+    jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
+    systemProperty "spring.profiles.active", currentProfiles
+    finalizedBy jacocoTestReport
+}
+
+checkstyle {
+    toolVersion = "10.18.1"
+    configFile = file("checkstyle/checkstyle.xml")
+    ignoreFailures = true
+    maxWarnings = 1000
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+processResources {
+    filesMatching("**/application.yml") {
+        filter { line ->
+            line.replace("active: dev", "active: ${currentProfiles}")
+        }
+    }
+}

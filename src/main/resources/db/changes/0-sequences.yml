@@ -1,0 +1,12 @@
+databaseChangeLog:
+    - changeSet:
+          id: create-hibernate-sequence
+          author: insideq
+          changes:
+              - createSequence:
+                    sequenceName: hibernate_sequence
+                    startValue: 1
+                    incrementBy: 50
+                    minValue: 1
+                    cycle: false
+                    dataType: bigint
