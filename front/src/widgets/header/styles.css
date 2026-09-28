@@ -1,0 +1,7 @@
+header nav {
+    background-color: var(--my-navbar-color);
+}
+
+header nav a:hover {
+    text-decoration: underline;
+}

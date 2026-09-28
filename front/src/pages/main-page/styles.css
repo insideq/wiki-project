@@ -1,0 +1,19 @@
+.illustration {
+    width: 100%;
+}
+
+.content p {
+    text-align: justify;
+}
+
+@media (min-width: 768px) {
+    .illustration {
+        width: 50% !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .illustration {
+        width: 25% !important;
+    }
+}
