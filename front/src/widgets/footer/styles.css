@@ -1,0 +1,5 @@
+footer {
+    background-color: var(--my-footer-color);
+    height: 48px;
+    color: #ffffff;
+}

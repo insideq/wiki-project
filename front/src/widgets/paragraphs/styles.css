@@ -1,0 +1,11 @@
+.myp {
+    cursor: pointer;
+}
+
+.odd {
+    background-color: white;
+}
+
+.even {
+    background-color: gray;
+}

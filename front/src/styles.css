@@ -1,0 +1,27 @@
+:root {
+    --my-navbar-color: #3c3c3c;
+    --my-footer-color: color-mix(in srgb, var(--my-navbar-color), transparent 50%);
+    /* так тоже можно */
+    /* --my-footer-color: rgba(from var(--my-navbar-color) r g b / 0.5); */
+}
+
+.row,
+form {
+    margin: 0;
+}
+
+h1 {
+    font-size: 1.5em;
+}
+
+h2 {
+    font-size: 1.25em;
+}
+
+h3 {
+    font-size: 1.1em;
+}
+
+.bi {
+    vertical-align: -0.125em;
+}

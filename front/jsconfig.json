@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "jsx": "react-jsx",
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "checkJs": true,
+        "paths": {
+            "@entities/*": ["./src/entities/*"],
+            "@pages/*": ["./src/pages/*"],
+            "@shared/*": ["./src/shared/*"],
+            "@widgets/*": ["./src/widgets/*"]
+        }
+    },
+    "exclude": ["node_modules", "**/node_modules/*"]
+}

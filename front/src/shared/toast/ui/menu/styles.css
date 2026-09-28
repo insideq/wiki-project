@@ -1,0 +1,15 @@
+.toast-toggle.dropdown-toggle::after {
+    display: none !important;
+}
+
+.toast-menu {
+    width: 250px;
+    max-height: 400px;
+    overflow-y: scroll;
+}
+
+.toast-menu-item {
+    font-size: 0.8rem !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
