@@ -71,10 +71,10 @@ public class UserService implements UserDetailsService {
     @Transactional
     public UserRs update(String login, UserUpdateRq dto) {
         UserEntity entity = getEntityByLogin(login);
-        if (passwordEncoder.matches(dto.oldPassword(), entity.getPassword())) {
+        if (!passwordEncoder.matches(dto.oldPassword(), entity.getPassword())) {
             throw new IllegalArgumentException("Old password is incorrect");
         }
-        if (Objects.equals(dto.newPassword(), dto.newPasswordConfirm())) {
+        if (!Objects.equals(dto.newPassword(), dto.newPasswordConfirm())) {
             throw new PasswordConfirmationException();
         }
         entity.setPassword(passwordEncoder.encode(dto.newPassword()));
@@ -85,7 +85,7 @@ public class UserService implements UserDetailsService {
     @Transactional
     public UserRs delete(String login, String password) {
         final UserEntity entity = getEntityByLogin(login);
-        if (passwordEncoder.matches(password, entity.getPassword())) {
+        if (!passwordEncoder.matches(password, entity.getPassword())) {
             throw new IllegalArgumentException("Password is incorrect");
         }
         repository.delete(entity);
