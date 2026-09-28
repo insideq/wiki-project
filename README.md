@@ -17,10 +17,11 @@ Wiki-система на Spring Boot 3 + React.
 - H2 (dev) / PostgreSQL (prod)
 - OpenAPI/Swagger
 
-**Frontend** (в разработке):
+**Frontend**:
 
 - React 18
 - Vite
+- Bootstrap 5
 
 **Инфраструктура:**
 
