@@ -2,13 +2,16 @@ name: Metrics
 
 on:
     schedule:
-        - cron: "0 6 * * 1" # каждый понедельник в 06:00 UTC
-    workflow_dispatch: # + запуск вручную
+        - cron: "0 6 * * 1"
+    workflow_dispatch:
 
 jobs:
     collect:
         name: Collect metrics
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: read
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -27,18 +30,111 @@ jobs:
             - name: Run tests with coverage
               run: ./gradlew test jacocoTestReport
 
-            - name: Count commits last week
+            - name: Extract test results
+              id: tests
               run: |
-                  echo "## Commits last 7 days" >> $GITHUB_STEP_SUMMARY
-                  git log --since="7 days ago" --oneline | wc -l >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "## Last 10 commits" >> $GITHUB_STEP_SUMMARY
-                  echo '```' >> $GITHUB_STEP_SUMMARY
-                  git log --oneline -10 >> $GITHUB_STEP_SUMMARY
-                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  PASSED=$(grep -hoP 'tests="\K[0-9]+' build/test-results/test/*.xml 2>/dev/null | awk '{s+=$1} END {print s}')
+                  FAILED=$(grep -hoP 'failures="\K[0-9]+' build/test-results/test/*.xml 2>/dev/null | awk '{s+=$1} END {print s}')
+                  echo "passed=${PASSED:-0}" >> $GITHUB_OUTPUT
+                  echo "failed=${FAILED:-0}" >> $GITHUB_OUTPUT
 
-            - name: Upload coverage report
+            - name: Extract JaCoCo coverage
+              id: coverage
+              run: |
+                  if [ -f build/reports/jacoco/test/jacocoTestReport.csv ]; then
+                    INSTR=$(grep -oP 'INSTRUCTION,\K[0-9.]+' build/reports/jacoco/test/jacocoTestReport.csv | head -1)
+                    BRANCH=$(grep -oP 'BRANCH,\K[0-9.]+' build/reports/jacoco/test/jacocoTestReport.csv | head -1)
+                    echo "instruction=${INSTR:-0}" >> $GITHUB_OUTPUT
+                    echo "branch=${BRANCH:-0}" >> $GITHUB_OUTPUT
+                  else
+                    echo "instruction=0" >> $GITHUB_OUTPUT
+                    echo "branch=0" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Run Checkstyle
+              run: ./gradlew checkstyleMain || true
+
+            - name: Count Checkstyle warnings
+              id: checkstyle
+              run: |
+                  COUNT=$(grep -c '<error' build/reports/checkstyle/main.xml 2>/dev/null || echo 0)
+                  echo "warnings=${COUNT}" >> $GITHUB_OUTPUT
+
+            - name: Count commits last 7 days
+              id: commits
+              run: |
+                  COUNT=$(git log --since="7 days ago" --oneline | wc -l)
+                  echo "count=${COUNT}" >> $GITHUB_OUTPUT
+
+            - name: Count commits total
+              id: commits_total
+              run: |
+                  COUNT=$(git rev-list --count HEAD)
+                  echo "count=${COUNT}" >> $GITHUB_OUTPUT
+
+            - name: Count branches
+              id: branches
+              run: |
+                  COUNT=$(git branch -r | grep -v HEAD | wc -l)
+                  echo "count=${COUNT}" >> $GITHUB_OUTPUT
+
+            - name: Count PRs
+              id: prs
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  OPEN=$(gh pr list --state open --json number --jq 'length' || echo 0)
+                  CLOSED=$(gh pr list --state closed --limit 1000 --json number --jq 'length' || echo 0)
+                  echo "open=${OPEN}" >> $GITHUB_OUTPUT
+                  echo "closed=${CLOSED}" >> $GITHUB_OUTPUT
+
+            - name: Write summary
+              run: |
+                  cat >> $GITHUB_STEP_SUMMARY <<EOF
+                  # 📊 Метрики проекта WikiSystem
+
+                  **Дата:** $(date +%Y-%m-%d)
+
+                  ## Тестирование
+                  | Метрика | Значение |
+                  |---------|----------|
+                  | Пройдено тестов | ${{ steps.tests.outputs.passed }} |
+                  | Упало тестов | ${{ steps.tests.outputs.failed }} |
+                  | Покрытие Instructions | ${{ steps.coverage.outputs.instruction }}% |
+                  | Покрытие Branches | ${{ steps.coverage.outputs.branch }}% |
+
+                  ## Статический анализ
+                  | Метрика | Значение |
+                  |---------|----------|
+                  | Checkstyle warnings | ${{ steps.checkstyle.outputs.warnings }} |
+
+                  ## Git-метрики
+                  | Метрика | Значение |
+                  |---------|----------|
+                  | Коммитов за 7 дней | ${{ steps.commits.outputs.count }} |
+                  | Всего коммитов | ${{ steps.commits_total.outputs.count }} |
+                  | Веток | ${{ steps.branches.outputs.count }} |
+                  | Открытых PR | ${{ steps.prs.outputs.open }} |
+                  | Закрытых PR | ${{ steps.prs.outputs.closed }} |
+
+                  ## Артефакты
+                  - JaCoCo: см. artifact **metrics-jacoco**
+                  - Checkstyle: см. artifact **metrics-checkstyle**
+
+                  ## Последние 10 коммитов
+                  \`\`\`
+                  $(git log --oneline -10)
+                  \`\`\`
+                  EOF
+
+            - name: Upload JaCoCo
               uses: actions/upload-artifact@v4
               with:
                   name: metrics-jacoco
                   path: build/reports/jacoco/test/html/
+
+            - name: Upload Checkstyle
+              uses: actions/upload-artifact@v4
+              with:
+                  name: metrics-checkstyle
+                  path: build/reports/checkstyle/
