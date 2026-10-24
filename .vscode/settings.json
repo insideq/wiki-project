@@ -1,6 +1,7 @@
 {
     "files.autoSave": "onFocusChange",
     "files.eol": "\n",
+    "javascript.validate.enable": false,
     "editor.detectIndentation": false,
     "editor.formatOnType": false,
     "editor.formatOnPaste": true,
