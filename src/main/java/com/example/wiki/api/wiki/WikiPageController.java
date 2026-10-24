@@ -35,7 +35,6 @@ public class WikiPageController {
         this.wikiPageService = wikiPageService;
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public PageRs<WikiPageRs> search(
             @RequestParam(required = false) String query,
@@ -45,7 +44,6 @@ public class WikiPageController {
         return wikiPageService.search(query, tagId, PageHelper.toPageable(page, size));
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
     public WikiPageRs get(@PathVariable Long id) {
         return wikiPageService.get(id);
