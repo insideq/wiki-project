@@ -206,6 +206,7 @@ databaseChangeLog:
                                   nullable: false
                                   foreignKeyName: fk_delete_requests_page
                                   references: wiki_pages(id)
+                                  onDelete: CASCADE
                         - column:
                               name: requested_by
                               type: BIGINT
