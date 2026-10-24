@@ -6,13 +6,11 @@ import { useModal } from "@shared/modal";
 import { TOAST_ACTION, useToastsDispatch } from "@shared/toast/context";
 import { MdViewer } from "@widgets/md-viewer";
 import { useState } from "react";
-import { Alert, Button, Spinner } from "react-bootstrap";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Alert, Badge, Button, Spinner } from "react-bootstrap";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 export const WikiViewPage = () => {
     const { id } = useParams();
-    const [searchParams] = useSearchParams();
-    const searchQuery = searchParams.get("search") || "";
     const navigate = useNavigate();
     const { data, loading, error } = useWikiPage(id);
     const { remove } = useWikiMutations();
@@ -27,10 +25,14 @@ export const WikiViewPage = () => {
 
     const isAdmin = user?.details?.role === "ROLE_ADMIN";
     const isAuthor = user?.details?.login === data.authorLogin;
-    const canEdit = isAdmin || (isAuthor && data.status === "ACTIVE");
-    const isPendingDeletion = data.status === "PENDING_DELETION";
+    const isOpen = data.editPolicy === "OPEN";
+    const isActive = data.status === "ACTIVE";
+    const isAuthenticated = !!user;
 
-    // Удаление админом (сразу)
+    const canEdit = isAuthenticated && isActive && (isAdmin || isAuthor || isOpen);
+
+    const canRequestDelete = isAuthenticated && isAuthor && isActive;
+
     const handleAdminDelete = () => {
         show("Удаление", `Удалить статью "${data.title}" безвозвратно?`, async () => {
             try {
@@ -46,14 +48,13 @@ export const WikiViewPage = () => {
         });
     };
 
-    // Запрос на удаление (от автора)
     const handleRequestDelete = () => {
         show("Запрос на удаление", "Отправить запрос администратору на удаление этой статьи?", async () => {
             try {
                 setIsActionLoading(true);
                 await createDeleteRequest(id);
                 dispatch({ type: TOAST_ACTION.add, title: "Успех", text: "Запрос отправлен" });
-                window.location.reload(); // перезагружаем, чтобы увидеть статус
+                window.location.reload(); 
             } catch (e) {
                 dispatch({ type: TOAST_ACTION.add, title: "Ошибка", text: e.message });
             } finally {
@@ -66,25 +67,26 @@ export const WikiViewPage = () => {
         <div className="container mt-3">
             <h1>{data.title}</h1>
             
-            {isPendingDeletion && (
+            {data.status === "PENDING_DELETION" && (
                 <Alert variant="warning">
-                    Эта статья ожидает удаления. Администратор рассмотрит запрос.
+                    Эта статья ожидает удаления.
                 </Alert>
             )}
 
             <div className="text-muted mb-2">
                 Автор: {data.authorLogin} · {new Date(data.createdAt).toLocaleString()}
             </div>
+            
             <div className="mb-3">
                 {data.tags?.map((tag) => (
-                    <span key={tag.id} className="badge bg-secondary me-1">
+                    <Badge key={tag.id} bg="secondary" className="me-1 fw-normal">
                         {tag.name}
-                    </span>
+                    </Badge>
                 ))}
             </div>
 
             <div className="d-flex gap-2 mb-3">
-                {canEdit && !isPendingDeletion && (
+                {canEdit && (
                     <Button as={Link} to={`/wiki/${data.id}/edit`} variant="outline-primary" size="sm">
                         Редактировать
                     </Button>
@@ -96,7 +98,7 @@ export const WikiViewPage = () => {
                     </Button>
                 )}
                 
-                {!isAdmin && isAuthor && !isPendingDeletion && (
+                {canRequestDelete && !isAdmin && (
                     <Button variant="outline-danger" size="sm" onClick={handleRequestDelete} disabled={isActionLoading}>
                         Запросить удаление
                     </Button>
@@ -107,7 +109,7 @@ export const WikiViewPage = () => {
                 </Button>
             </div>
 
-            <MdViewer content={data.content} highlight={searchQuery} />
+            <MdViewer content={data.content} />
         </div>
     );
 };
