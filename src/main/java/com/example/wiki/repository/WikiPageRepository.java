@@ -13,11 +13,14 @@ public interface WikiPageRepository extends JpaRepository<WikiPageEntity, Long> 
     @Query("select distinct p from WikiPageEntity p " +
             "left join p.tags t " +
             "where p.status = com.example.wiki.entity.WikiPageStatus.ACTIVE " +
+            "and (p.visibility = com.example.wiki.entity.WikiPageVisibility.PUBLIC " +
+            "     or (:userId is not null)) " +
             "and (:query is null or lower(p.title) like lower(concat('%', :query, '%')) " +
             "     or lower(p.content) like lower(concat('%', :query, '%'))) " +
             "and (:tagId is null or t.id = :tagId)")
     Page<WikiPageEntity> searchActive(
             @Param("query") String query,
             @Param("tagId") Long tagId,
+            @Param("userId") Long userId,
             Pageable pageable);
 }

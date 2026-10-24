@@ -40,13 +40,23 @@ public class WikiPageController {
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Long tagId,
             @RequestParam(defaultValue = "1") @Min(1) int page,
-            @RequestParam(defaultValue = "10") @Min(1) int size) {
-        return wikiPageService.search(query, tagId, PageHelper.toPageable(page, size));
+            @RequestParam(defaultValue = "10") @Min(1) int size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        // Если principal == null, значит пользователь не авторизован (гость)
+        final UserEntity user = principal != null ? principal.getUser() : null;
+
+        return wikiPageService.search(query, tagId, user, PageHelper.toPageable(page, size));
     }
 
     @GetMapping("/{id}")
-    public WikiPageRs get(@PathVariable Long id) {
-        return wikiPageService.get(id);
+    public WikiPageRs get(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        final UserEntity user = principal != null ? principal.getUser() : null;
+
+        return wikiPageService.get(id, user);
     }
 
     @PreAuthorize("isAuthenticated()")
