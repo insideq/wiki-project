@@ -60,6 +60,9 @@ public class SecurityRestConfiguration {
                 .requestMatchers("/h2-console/**").hasRole(UserRole.ADMIN.name())
                 .requestMatchers(HttpMethod.POST, AuthController.URL + Constants.SIGNUP_URL).anonymous()
                 .requestMatchers(HttpMethod.POST, AuthController.URL + Constants.LOGIN_URL).anonymous()
+                // Разрешаем чтение статей и тегов всем
+                .requestMatchers(HttpMethod.GET, Constants.API_URL + "/wiki/**").permitAll()
+                .requestMatchers(HttpMethod.GET, Constants.API_URL + "/tag/**").permitAll()
                 .requestMatchers(Constants.API_URL + "/**").authenticated()
                 .anyRequest().denyAll());
 
