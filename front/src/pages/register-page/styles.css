@@ -1,0 +1,20 @@
+.login-form-container {
+    background-color: var(--bs-body-bg);
+}
+
+.login-form {
+    background-color: var(--bs-body-bg);
+}
+
+@media (min-width: 768px) {
+    .login-form-container {
+        background-color: #dee2e6;
+        height: 100%;
+    }
+
+    .login-form {
+        box-shadow: var(--bs-box-shadow-sm) !important;
+        border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+        border-radius: var(--bs-border-radius) !important;
+    }
+}

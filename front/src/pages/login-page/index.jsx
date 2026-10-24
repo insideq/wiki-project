@@ -3,10 +3,12 @@ import { useBSForm } from "@shared/form";
 import { useState } from "react";
 import { Alert, Button, Form } from "react-bootstrap";
 import { JournalText } from "react-bootstrap-icons";
+import { Link, useNavigate } from "react-router-dom";
 import "./styles.css";
 
 export const LoginPage = () => {
     const { login } = useAuth();
+    const navigate = useNavigate();
 
     const { register, validated, handleSubmit, resetField, setFocus } = useBSForm(null, false);
     const [isSubmit, setIsSubmit] = useState(false);
@@ -19,6 +21,7 @@ export const LoginPage = () => {
         setIsSubmit(true);
         try {
             await login(data);
+            navigate("/wiki");
         } catch (error) {
             setError(error.message);
             setCredentials({ ...credentials, password: "" });
@@ -70,6 +73,9 @@ export const LoginPage = () => {
                             <Button type="submit" disabled={isSubmit} className="px-5">
                                 Войти
                             </Button>
+                        </div>
+                        <div className="text-center mt-3 small">
+                            Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
                         </div>
                     </Form>
                 </div>
