@@ -7,10 +7,12 @@ import { TOAST_ACTION, useToastsDispatch } from "@shared/toast/context";
 import { MdViewer } from "@widgets/md-viewer";
 import { useState } from "react";
 import { Alert, Button, Spinner } from "react-bootstrap";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 export const WikiViewPage = () => {
     const { id } = useParams();
+    const [searchParams] = useSearchParams();
+    const searchQuery = searchParams.get("search") || "";
     const navigate = useNavigate();
     const { data, loading, error } = useWikiPage(id);
     const { remove } = useWikiMutations();
@@ -105,7 +107,7 @@ export const WikiViewPage = () => {
                 </Button>
             </div>
 
-            <MdViewer content={data.content} />
+            <MdViewer content={data.content} highlight={searchQuery} />
         </div>
     );
 };
