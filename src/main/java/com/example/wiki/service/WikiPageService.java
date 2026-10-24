@@ -21,6 +21,7 @@ import com.example.wiki.entity.WikiPageEditPolicy;
 import com.example.wiki.entity.WikiPageEntity;
 import com.example.wiki.entity.WikiPageVisibility;
 import com.example.wiki.error.NotFoundException;
+import com.example.wiki.repository.DeleteRequestRepository;
 import com.example.wiki.repository.WikiPageRepository;
 
 @Service
@@ -28,10 +29,14 @@ public class WikiPageService {
 
     private final WikiPageRepository repository;
     private final TagService tagService;
+    private final DeleteRequestRepository deleteRequestRepository;
 
-    public WikiPageService(WikiPageRepository repository, TagService tagService) {
+    public WikiPageService(WikiPageRepository repository,
+            TagService tagService,
+            DeleteRequestRepository deleteRequestRepository) {
         this.repository = repository;
         this.tagService = tagService;
+        this.deleteRequestRepository = deleteRequestRepository;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -94,6 +99,11 @@ public class WikiPageService {
     @Transactional
     public WikiPageRs delete(Long id) {
         final WikiPageEntity entity = getEntity(id);
+
+        // 1. Удаляем связанные запросы на удаление, чтобы не было ошибки Foreign Key
+        deleteRequestRepository.deleteAllByPageId(id);
+
+        // 2. Теперь спокойно удаляем саму страницу
         repository.delete(entity);
         return WikiPageRs.full(entity);
     }

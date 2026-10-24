@@ -51,8 +51,6 @@ public class DeleteRequestService {
     public WikiPageRs approve(Long id) {
         final DeleteRequestEntity entity = getEntity(id);
         final WikiPageEntity page = entity.getPage();
-        entity.setStatus(RequestStatus.APPROVED);
-        repository.save(entity);
         return wikiPageService.delete(page.getId());
     }
 
