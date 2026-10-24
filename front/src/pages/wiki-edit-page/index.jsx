@@ -108,29 +108,33 @@ export const WikiEditPage = () => {
                     </Form.Group>
                 </div>
 
-                <Form.Group className="mb-3">
-                    <Form.Label>Теги</Form.Label>
-                    <Form.Control
-                        as="select"
-                        multiple
-                        value={selectedTagIds.map(String)}
-                        onChange={(e) =>
-                            setSelectedTagIds(Array.from(e.target.selectedOptions, (o) => Number(o.value)))
-                        }
-                    >
+                <Form.Group className="mb-3 border p-3 rounded bg-light">
+                    <Form.Label className="fw-bold">Теги статьи</Form.Label>
+                    <div className="d-flex flex-wrap gap-3">
                         {tags.map((t) => (
-                            <option key={t.id} value={t.id}>
-                                {t.name}
-                            </option>
+                            <Form.Check
+                                key={t.id}
+                                type="checkbox"
+                                id={`tag-${t.id}`}
+                                label={t.name}
+                                checked={selectedTagIds.includes(t.id)}
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setSelectedTagIds([...selectedTagIds, t.id]);
+                                    } else {
+                                        setSelectedTagIds(selectedTagIds.filter(id => id !== t.id));
+                                    }
+                                }}
+                            />
                         ))}
-                    </Form.Control>
+                    </div>
                 </Form.Group>
 
-                <div className="d-flex gap-2">
-                    <Button type="submit" disabled={saving}>
-                        {saving ? "Сохранение..." : "Сохранить"}
+                <div className="d-flex gap-2 sticky-bottom bg-white p-3 border-top mt-4">
+                    <Button type="submit" size="lg" disabled={saving} className="flex-grow-1">
+                        {saving ? "Сохранение..." : "Сохранить статью"}
                     </Button>
-                    <Button variant="secondary" onClick={() => navigate(-1)}>
+                    <Button variant="outline-secondary" size="lg" onClick={() => navigate(-1)}>
                         Отмена
                     </Button>
                 </div>
