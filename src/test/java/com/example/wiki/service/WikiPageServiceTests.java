@@ -99,7 +99,7 @@ class WikiPageServiceTests {
     void get_shouldReturnPage() {
         final WikiPageRs created = wikiPageService.create(defaultRq("Title", "Content"), author);
 
-        final WikiPageRs found = wikiPageService.get(created.id());
+        final WikiPageRs found = wikiPageService.get(created.id(), admin);
 
         assertThat(found.id()).isEqualTo(created.id());
         assertThat(found.title()).isEqualTo("Title");
@@ -108,7 +108,7 @@ class WikiPageServiceTests {
 
     @Test
     void get_shouldThrowIfNotFound() {
-        assertThatThrownBy(() -> wikiPageService.get(99999L))
+        assertThatThrownBy(() -> wikiPageService.get(99999L, admin))
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -118,7 +118,7 @@ class WikiPageServiceTests {
         wikiPageService.create(defaultRq("Java guide", "content"), author);
 
         final PageRs<WikiPageRs> result = wikiPageService.search(
-                null, null, PageRequest.of(0, 10));
+                null, null, admin, PageRequest.of(0, 10));
 
         assertThat(result.items()).hasSizeGreaterThanOrEqualTo(2);
     }
@@ -129,7 +129,7 @@ class WikiPageServiceTests {
         wikiPageService.create(defaultRq("Java guide", "content"), author);
 
         final PageRs<WikiPageRs> result = wikiPageService.search(
-                "Spring", null, PageRequest.of(0, 10));
+                "Spring", null, admin, PageRequest.of(0, 10));
 
         assertThat(result.items()).hasSize(1);
         assertThat(result.items().get(0).title()).isEqualTo("Spring guide");
@@ -209,7 +209,7 @@ class WikiPageServiceTests {
         final WikiPageRs deleted = wikiPageService.delete(created.id());
 
         assertThat(deleted.id()).isEqualTo(created.id());
-        assertThatThrownBy(() -> wikiPageService.get(created.id()))
+        assertThatThrownBy(() -> wikiPageService.get(created.id(), admin))
                 .isInstanceOf(NotFoundException.class);
     }
 
