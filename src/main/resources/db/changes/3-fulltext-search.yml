@@ -1,0 +1,30 @@
+databaseChangeLog:
+    - changeSet:
+          id: 3-add-fts-column
+          author: insideq
+          changes:
+              - sql:
+                    sql: |
+                        ALTER TABLE wiki_pages ADD COLUMN search_vector tsvector;
+              - sql:
+                    sql: |
+                        UPDATE wiki_pages SET search_vector = 
+                            setweight(to_tsvector('russian', coalesce(title, '')), 'A') ||
+                            setweight(to_tsvector('russian', coalesce(content, '')), 'B');
+              - sql:
+                    sql: |
+                        CREATE INDEX idx_wiki_search ON wiki_pages USING GIN(search_vector);
+              - sql:
+                    sql: |
+                        CREATE FUNCTION wiki_pages_search_trigger() RETURNS trigger AS $$
+                        BEGIN
+                          new.search_vector :=
+                            setweight(to_tsvector('russian', coalesce(new.title, '')), 'A') ||
+                            setweight(to_tsvector('russian', coalesce(new.content, '')), 'B');
+                          return new;
+                        END
+                        $$ LANGUAGE plpgsql;
+              - sql:
+                    sql: |
+                        CREATE TRIGGER trg_wiki_search BEFORE INSERT OR UPDATE ON wiki_pages
+                        FOR EACH ROW EXECUTE FUNCTION wiki_pages_search_trigger();

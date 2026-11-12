@@ -1,11 +1,13 @@
 package com.example.wiki.service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,12 +34,14 @@ public class WikiPageService {
     private final WikiPageRepository repository;
     private final TagService tagService;
     private final DeleteRequestRepository deleteRequestRepository;
+    private final Environment env;
 
     public WikiPageService(WikiPageRepository repository, TagService tagService,
-            DeleteRequestRepository deleteRequestRepository) {
+            DeleteRequestRepository deleteRequestRepository, Environment env) {
         this.repository = repository;
         this.tagService = tagService;
         this.deleteRequestRepository = deleteRequestRepository;
+        this.env = env;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -48,9 +52,17 @@ public class WikiPageService {
     @Transactional(readOnly = true)
     public PageRs<WikiPageRs> search(String query, List<Long> tagIds, UserEntity currentUser, Pageable pageable) {
         final Long userId = currentUser != null ? currentUser.getId() : null;
-        // Если список пустой, передаем null, чтобы запрос его проигнорировал
         final List<Long> filterTags = (tagIds == null || tagIds.isEmpty()) ? null : tagIds;
-        final Page<WikiPageEntity> page = repository.searchActive(query, filterTags, userId, pageable);
+
+        boolean isProd = Arrays.asList(env.getActiveProfiles()).contains("prod");
+
+        Page<WikiPageEntity> page;
+        if (isProd) {
+            page = repository.searchActivePostgres(query, filterTags, userId, pageable);
+        } else {
+            page = repository.searchActiveH2(query, filterTags, userId, pageable);
+        }
+
         return PageRs.from(page, WikiPageRs::shortFrom);
     }
 
