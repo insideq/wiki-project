@@ -2,6 +2,7 @@ package com.example.wiki.service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -45,9 +46,11 @@ public class WikiPageService {
     }
 
     @Transactional(readOnly = true)
-    public PageRs<WikiPageRs> search(String query, Long tagId, UserEntity currentUser, Pageable pageable) {
+    public PageRs<WikiPageRs> search(String query, List<Long> tagIds, UserEntity currentUser, Pageable pageable) {
         final Long userId = currentUser != null ? currentUser.getId() : null;
-        final Page<WikiPageEntity> page = repository.searchActive(query, tagId, userId, pageable);
+        // Если список пустой, передаем null, чтобы запрос его проигнорировал
+        final List<Long> filterTags = (tagIds == null || tagIds.isEmpty()) ? null : tagIds;
+        final Page<WikiPageEntity> page = repository.searchActive(query, filterTags, userId, pageable);
         return PageRs.from(page, WikiPageRs::shortFrom);
     }
 

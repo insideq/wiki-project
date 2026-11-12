@@ -36,7 +36,7 @@
 .wiki-card-text {
     font-size: 0.95rem;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 3; /* Обрезает текст после 3 строк */
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

@@ -7,18 +7,22 @@ import {
     WIKI_PAGE_VISIBILITY,
     WIKI_PAGE_VISIBILITY_LABELS,
 } from "@entities/wiki-page/model/enums";
+import { useAuth } from "@shared/auth";
 import { MdEditor } from "@widgets/md-editor";
 import { useEffect, useState } from "react";
-import { Button, Form, Spinner } from "react-bootstrap";
+import { Alert, Button, Form, Spinner } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
+import "./styles.css";
 
 export const WikiEditPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const isEdit = !!id;
+    
     const { create, update } = useWikiMutations();
-    const { data: existing, loading: loadingExisting } = useWikiPage(id);
+    const { data: existing, loading: loadingExisting, error: loadError } = useWikiPage(id);
     const { data: tags } = useTags();
+    const { user, isAuthenticated } = useAuth();
 
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
@@ -29,6 +33,12 @@ export const WikiEditPage = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        if (!isAuthenticated) {
+            navigate("/login");
+        }
+    }, [isAuthenticated, navigate]);
+
+    useEffect(() => {
         if (existing) {
             setTitle(existing.title || "");
             setContent(existing.content || "");
@@ -37,6 +47,18 @@ export const WikiEditPage = () => {
             setSelectedTagIds(existing.tags?.map((t) => t.id) || []);
         }
     }, [existing]);
+
+    useEffect(() => {
+        if (isEdit && existing && user?.details) {
+            const isAdmin = user.details.role === "ROLE_ADMIN";
+            const isAuthor = user.details.login === existing.authorLogin;
+            const isOpen = existing.editPolicy === WIKI_PAGE_EDIT_POLICY.OPEN;
+            
+            if (!isAdmin && !isAuthor && !isOpen) {
+                navigate("/forbidden");
+            }
+        }
+    }, [isEdit, existing, user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -59,86 +81,95 @@ export const WikiEditPage = () => {
         }
     };
 
-    if (isEdit && loadingExisting) return <Spinner animation="border" />;
+    if (isEdit && loadingExisting) return <div className="text-center mt-5"><Spinner animation="border" /></div>;
+    if (isEdit && loadError) return <div className="container mt-3"><Alert variant="danger">{loadError}</Alert></div>;
+    if (!user) return <div className="text-center mt-5"><Spinner animation="border" /></div>;
 
     return (
-        <div className="container mt-3">
-            <h2>{isEdit ? "Редактирование статьи" : "Создание статьи"}</h2>
+        <div className="container mt-4">
+            <h2 className="mb-4 fw-bold">{isEdit ? "Редактирование статьи" : "Создание статьи"}</h2>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            {error && <Alert variant="danger">{error}</Alert>}
 
-            <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
-                    <Form.Label>Заголовок</Form.Label>
-                    <Form.Control
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                        maxLength={200}
-                    />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Содержимое (Markdown)</Form.Label>
-                    <MdEditor value={content} onChange={setContent} />
-                </Form.Group>
-
-                <div className="row">
-                    <Form.Group className="mb-3 col-md-6">
-                        <Form.Label>Видимость</Form.Label>
-                        <Form.Select value={visibility} onChange={(e) => setVisibility(e.target.value)}>
-                            {Object.entries(WIKI_PAGE_VISIBILITY_LABELS).map(([key, label]) => (
-                                <option key={key} value={key}>
-                                    {label}
-                                </option>
-                            ))}
-                        </Form.Select>
+            {/* 2. Обертка формы */}
+            <div className="wiki-edit-form">
+                <Form onSubmit={handleSubmit}>
+                    <Form.Group className="mb-4">
+                        <Form.Label className="fw-bold">Заголовок статьи</Form.Label>
+                        <Form.Control 
+                            type="text" 
+                            value={title} 
+                            onChange={(e) => setTitle(e.target.value)} 
+                            required 
+                            maxLength={200} 
+                            placeholder="Введите заголовок..."
+                            size="lg"
+                        />
                     </Form.Group>
 
-                    <Form.Group className="mb-3 col-md-6">
-                        <Form.Label>Права редактирования</Form.Label>
-                        <Form.Select value={editPolicy} onChange={(e) => setEditPolicy(e.target.value)}>
-                            {Object.entries(WIKI_PAGE_EDIT_POLICY_LABELS).map(([key, label]) => (
-                                <option key={key} value={key}>
-                                    {label}
-                                </option>
-                            ))}
-                        </Form.Select>
+                    <Form.Group className="mb-4">
+                        <Form.Label className="fw-bold">Содержимое (Markdown)</Form.Label>
+                        <MdEditor value={content} onChange={setContent} />
                     </Form.Group>
-                </div>
 
-                <Form.Group className="mb-3 border p-3 rounded bg-light">
-                    <Form.Label className="fw-bold">Теги статьи</Form.Label>
-                    <div className="d-flex flex-wrap gap-3">
-                        {tags.map((t) => (
-                            <Form.Check
-                                key={t.id}
-                                type="checkbox"
-                                id={`tag-${t.id}`}
-                                label={t.name}
-                                checked={selectedTagIds.includes(t.id)}
-                                onChange={(e) => {
-                                    if (e.target.checked) {
-                                        setSelectedTagIds([...selectedTagIds, t.id]);
-                                    } else {
-                                        setSelectedTagIds(selectedTagIds.filter(id => id !== t.id));
-                                    }
-                                }}
-                            />
-                        ))}
+                    <div className="row mb-4">
+                        <Form.Group className="col-md-6">
+                            <Form.Label className="fw-bold">Видимость</Form.Label>
+                            <Form.Select value={visibility} onChange={(e) => setVisibility(e.target.value)}>
+                                {Object.entries(WIKI_PAGE_VISIBILITY_LABELS).map(([key, label]) => (
+                                    <option key={key} value={key}>{label}</option>
+                                ))}
+                            </Form.Select>
+                            <Form.Text className="text-muted">
+                                Приватные статьи видят только авторизованные пользователи.
+                            </Form.Text>
+                        </Form.Group>
+
+                        <Form.Group className="col-md-6">
+                            <Form.Label className="fw-bold">Права редактирования</Form.Label>
+                            <Form.Select value={editPolicy} onChange={(e) => setEditPolicy(e.target.value)}>
+                                {Object.entries(WIKI_PAGE_EDIT_POLICY_LABELS).map(([key, label]) => (
+                                    <option key={key} value={key}>{label}</option>
+                                ))}
+                            </Form.Select>
+                            <Form.Text className="text-muted">
+                                OPEN — редактируют все авторизованные. OWNER_ONLY — только автор.
+                            </Form.Text>
+                        </Form.Group>
                     </div>
-                </Form.Group>
 
-                <div className="d-flex gap-2 sticky-bottom bg-white p-3 border-top mt-4">
-                    <Button type="submit" size="lg" disabled={saving} className="flex-grow-1">
-                        {saving ? "Сохранение..." : "Сохранить статью"}
-                    </Button>
-                    <Button variant="outline-secondary" size="lg" onClick={() => navigate(-1)}>
-                        Отмена
-                    </Button>
-                </div>
-            </Form>
+                    {/* 3. Блок с тегами */}
+                    <Form.Group className="mb-4 tags-selector">
+                        <Form.Label className="fw-bold mb-3 d-block">Категории (Теги)</Form.Label>
+                        <div className="d-flex flex-wrap gap-3">
+                            {tags.map((t) => (
+                                <Form.Check
+                                    key={t.id}
+                                    type="checkbox"
+                                    id={`tag-${t.id}`}
+                                    label={t.name}
+                                    checked={selectedTagIds.includes(t.id)}
+                                    onChange={(e) => {
+                                        if (e.target.checked) setSelectedTagIds([...selectedTagIds, t.id]);
+                                        else setSelectedTagIds(selectedTagIds.filter(tid => tid !== t.id));
+                                    }}
+                                />
+                            ))}
+                            {tags.length === 0 && <span className="text-muted">Тегов пока нет.</span>}
+                        </div>
+                    </Form.Group>
+
+                    {/* 4. Кнопки (sticky) */}
+                    <div className="sticky-save-bar">
+                        <Button type="submit" disabled={saving} className="flex-grow-1" size="lg">
+                            {saving ? "Сохранение..." : "Сохранить статью"}
+                        </Button>
+                        <Button variant="outline-secondary" onClick={() => navigate(-1)} size="lg">
+                            Отмена
+                        </Button>
+                    </div>
+                </Form>
+            </div>
         </div>
     );
 };
