@@ -63,7 +63,7 @@ class DeleteRequestServiceTests {
         assertThat(request.pageTitle()).isEqualTo("To delete");
         assertThat(request.status()).isEqualTo("PENDING");
 
-        final WikiPageRs updatedPage = wikiPageService.get(page.id());
+        final WikiPageRs updatedPage = wikiPageService.get(page.id(), author);
         assertThat(updatedPage.status()).isEqualTo("PENDING_DELETION");
     }
 
@@ -76,7 +76,7 @@ class DeleteRequestServiceTests {
 
         assertThat(deleted.id()).isEqualTo(page.id());
 
-        assertThatThrownBy(() -> wikiPageService.get(page.id()))
+        assertThatThrownBy(() -> wikiPageService.get(page.id(), author))
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -89,7 +89,7 @@ class DeleteRequestServiceTests {
 
         assertThat(rejected.status()).isEqualTo("REJECTED");
 
-        final WikiPageRs restored = wikiPageService.get(page.id());
+        final WikiPageRs restored = wikiPageService.get(page.id(), author);
         assertThat(restored.status()).isEqualTo("ACTIVE");
     }
 
