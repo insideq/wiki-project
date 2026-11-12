@@ -80,7 +80,7 @@ class WikiPageServiceTests {
 
     @Test
     void create_withTags_shouldReturnPageWithTags() {
-        final TagRs tag = tagService.create(new TagRq("Spring"));
+        final TagRs tag = tagService.create(new TagRq("Springolet"));
 
         final WikiPageRq rq = new WikiPageRq(
                 "With tags",
@@ -92,7 +92,7 @@ class WikiPageServiceTests {
         final WikiPageRs page = wikiPageService.create(rq, author);
 
         assertThat(page.tags()).hasSize(1);
-        assertThat(page.tags().get(0).name()).isEqualTo("Spring");
+        assertThat(page.tags().get(0).name()).isEqualTo("Springolet");
     }
 
     @Test
@@ -193,7 +193,7 @@ class WikiPageServiceTests {
                 "Private",
                 "content",
                 WikiPageVisibility.PRIVATE,
-                WikiPageEditPolicy.OPEN,
+                WikiPageEditPolicy.OWNER_ONLY,
                 Set.of());
 
         final WikiPageRs created = wikiPageService.create(rq, author);
