@@ -64,8 +64,8 @@ class WikiPageControllerTests {
                 new UserLoginRq(AUTHOR_LOGIN, AUTHOR_PASSWORD));
 
         token = mockMvc.perform(post(LOGIN_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginBody))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -73,17 +73,11 @@ class WikiPageControllerTests {
     }
 
     @Test
-    void getAll_withoutAuth_shouldReturnUnauthorized() throws Exception {
-        mockMvc.perform(get(WIKI_URL))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
     void getAll_asAuthenticated_shouldReturnPage() throws Exception {
         createTestPage("API Test Page");
 
         mockMvc.perform(get(WIKI_URL)
-                        .header("Authorization", "Bearer " + token))
+                .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray());
     }
@@ -94,7 +88,7 @@ class WikiPageControllerTests {
         createTestPage("Java Guide");
 
         mockMvc.perform(get(WIKI_URL + "?query=Spring")
-                        .header("Authorization", "Bearer " + token))
+                .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray());
     }
@@ -104,7 +98,7 @@ class WikiPageControllerTests {
         final var page = createTestPage("Viewable Page");
 
         mockMvc.perform(get(WIKI_URL + "/" + page.id())
-                        .header("Authorization", "Bearer " + token))
+                .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Viewable Page"));
     }
@@ -112,7 +106,7 @@ class WikiPageControllerTests {
     @Test
     void get_withNonexistentId_shouldReturn404() throws Exception {
         mockMvc.perform(get(WIKI_URL + "/99999")
-                        .header("Authorization", "Bearer " + token))
+                .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
     }
 
@@ -121,8 +115,8 @@ class WikiPageControllerTests {
         final String body = objectMapper.writeValueAsString(defaultRq("Unauthorized"));
 
         mockMvc.perform(post(WIKI_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -131,9 +125,9 @@ class WikiPageControllerTests {
         final String body = objectMapper.writeValueAsString(defaultRq("Created via API"));
 
         mockMvc.perform(post(WIKI_URL)
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Created via API"))
                 .andExpect(jsonPath("$.visibility").value("PUBLIC"))
@@ -147,9 +141,9 @@ class WikiPageControllerTests {
                 new WikiPageRq(null, null, null, null, null));
 
         mockMvc.perform(post(WIKI_URL)
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
                 .andExpect(status().isBadRequest());
     }
 
@@ -161,9 +155,9 @@ class WikiPageControllerTests {
         try {
             final String body = objectMapper.writeValueAsString(defaultRq(title));
             final String response = mockMvc.perform(post(WIKI_URL)
-                            .header("Authorization", "Bearer " + token)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(body))
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
                     .andExpect(status().isOk())
                     .andReturn()
                     .getResponse()

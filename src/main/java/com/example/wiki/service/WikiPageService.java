@@ -2,6 +2,8 @@ package com.example.wiki.service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
@@ -31,8 +33,7 @@ public class WikiPageService {
     private final TagService tagService;
     private final DeleteRequestRepository deleteRequestRepository;
 
-    public WikiPageService(WikiPageRepository repository,
-            TagService tagService,
+    public WikiPageService(WikiPageRepository repository, TagService tagService,
             DeleteRequestRepository deleteRequestRepository) {
         this.repository = repository;
         this.tagService = tagService;
@@ -41,19 +42,29 @@ public class WikiPageService {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public WikiPageEntity getEntity(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new NotFoundException(WikiPageEntity.class, id));
+        return repository.findById(id).orElseThrow(() -> new NotFoundException(WikiPageEntity.class, id));
     }
 
     @Transactional(readOnly = true)
-    public PageRs<WikiPageRs> search(String query, Long tagId, Pageable pageable) {
-        final Page<WikiPageEntity> page = repository.searchActive(query, tagId, pageable);
+    public PageRs<WikiPageRs> search(String query, List<Long> tagIds, UserEntity currentUser, Pageable pageable) {
+        final Long userId = currentUser != null ? currentUser.getId() : null;
+        // Если список пустой, передаем null, чтобы запрос его проигнорировал
+        final List<Long> filterTags = (tagIds == null || tagIds.isEmpty()) ? null : tagIds;
+        final Page<WikiPageEntity> page = repository.searchActive(query, filterTags, userId, pageable);
         return PageRs.from(page, WikiPageRs::shortFrom);
     }
 
     @Transactional(readOnly = true)
-    public WikiPageRs get(Long id) {
-        return WikiPageRs.full(getEntity(id));
+    public WikiPageRs get(Long id, UserEntity currentUser) {
+        final WikiPageEntity entity = getEntity(id);
+
+        // Если статья приватная, проверяем только то, что пользователь авторизован
+        if (entity.getVisibility() == WikiPageVisibility.PRIVATE) {
+            if (currentUser == null) {
+                throw new AccessDeniedException("Private page. Authorization required.");
+            }
+        }
+        return WikiPageRs.full(entity);
     }
 
     @Transactional
@@ -72,19 +83,19 @@ public class WikiPageService {
     public WikiPageRs update(Long id, WikiPageRq dto, UserEntity currentUser) {
         final WikiPageEntity entity = getEntity(id);
 
-        // Проверка: если приватная — только автор или админ
-        if (entity.getVisibility() == WikiPageVisibility.PRIVATE
-                && !entity.getAuthor().getId().equals(currentUser.getId())
-                && currentUser.getRole() != UserRole.ADMIN) {
-            throw new AccessDeniedException("Private page. Access denied.");
+        if (currentUser == null) {
+            throw new AccessDeniedException("User is not authenticated.");
         }
 
-        // Проверка: если OWNER_ONLY — только автор или админ
-        if (entity.getEditPolicy() == WikiPageEditPolicy.OWNER_ONLY
-                && !entity.getAuthor().getId().equals(currentUser.getId())
-                && currentUser.getRole() != UserRole.ADMIN) {
-            throw new AccessDeniedException("Edit forbidden. Owner only.");
+        // Проверка политики редактирования (OWNER_ONLY)
+        if (entity.getEditPolicy() == WikiPageEditPolicy.OWNER_ONLY) {
+            boolean isAuthor = Objects.equals(entity.getAuthor().getId(), currentUser.getId());
+            boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
+            if (!isAuthor && !isAdmin) {
+                throw new AccessDeniedException("Редактирование разрешено только автору статьи.");
+            }
         }
+        // Если editPolicy == OPEN, то любой авторизованный проходит дальше.
 
         entity.setTitle(dto.title());
         entity.setContent(dto.content());
@@ -99,11 +110,7 @@ public class WikiPageService {
     @Transactional
     public WikiPageRs delete(Long id) {
         final WikiPageEntity entity = getEntity(id);
-
-        // 1. Удаляем связанные запросы на удаление, чтобы не было ошибки Foreign Key
         deleteRequestRepository.deleteAllByPageId(id);
-
-        // 2. Теперь спокойно удаляем саму страницу
         repository.delete(entity);
         return WikiPageRs.full(entity);
     }

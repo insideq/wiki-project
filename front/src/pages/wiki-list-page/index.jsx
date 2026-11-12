@@ -1,112 +1,143 @@
 import { useTags } from "@entities/tag/hooks/use-tags";
 import { useWikiPages } from "@entities/wiki-page/hooks/use-wiki-pages";
 import { useState } from "react";
-import { Alert, Button, Card, Form, Spinner } from "react-bootstrap";
+import { Badge, Button, Card, Col, Form, ListGroup, Pagination, Row, Spinner } from "react-bootstrap";
+import { PlusCircle, Search, Tag } from "react-bootstrap-icons";
 import { Link } from "react-router-dom";
+import "./styles.css";
 
 export const WikiListPage = () => {
     const [query, setQuery] = useState("");
-    const [tagId, setTagId] = useState("");
+    const [selectedTagIds, setSelectedTagIds] = useState([]);
     const [page, setPage] = useState(1);
-    const { data, loading, error } = useWikiPages({ page, size: 10, query, tagId });
+    const [tagSearch, setTagSearch] = useState("");
+    
+    const { data, loading, error } = useWikiPages({ page, size: 10, query, tagIds: selectedTagIds });
     const { data: tags } = useTags();
 
+    const filteredTags = tags.filter(t => t.name.toLowerCase().includes(tagSearch.toLowerCase()));
+
+    // Обработчик выбора тега (добавляет/удаляет из массива)
+    const handleTagToggle = (id) => {
+        setSelectedTagIds(prev => 
+            prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
+        );
+        setPage(1);
+    };
+
     return (
-        <div className="container mt-3">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2>Статьи</h2>
-                <Button as={Link} to="/wiki/new" variant="primary">
-                    Создать
+        <div className="container py-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h2 className="fw-bold m-0">Все статьи</h2>
+                <Button as={Link} to="/wiki/new" variant="primary" className="d-flex align-items-center gap-2">
+                    <PlusCircle /> Создать статью
                 </Button>
             </div>
 
-            <Form className="mb-3">
-                <div className="row g-2">
-                    <div className="col-md-6">
-                        <Form.Control
-                            type="text"
-                            placeholder="Поиск..."
-                            value={query}
-                            onChange={(e) => {
-                                setQuery(e.target.value);
-                                setPage(1);
-                            }}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <Form.Select value={tagId} onChange={(e) => setTagId(e.target.value)}>
-                            <option value="">Все теги</option>
-                            {tags.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name}
-                                </option>
+            <Row>
+                {/* ЛЕВЫЙ САЙДБАР */}
+                <Col md={3} className="mb-4">
+                    <Card className="shadow-sm border-0">
+                        <Card.Header className="bg-white fw-bold d-flex align-items-center gap-2">
+                            <Tag /> Категории
+                        </Card.Header>
+                        <Card.Body className="p-2 border-bottom">
+                            <Form.Control size="sm" type="text" placeholder="Поиск тега..." value={tagSearch} onChange={(e) => setTagSearch(e.target.value)} />
+                        </Card.Body>
+                        <ListGroup variant="flush" className="tag-sidebar-list">
+                            <ListGroup.Item 
+                                action 
+                                active={selectedTagIds.length === 0} 
+                                onClick={() => { setSelectedTagIds([]); setPage(1); }}
+                            >
+                                Все статьи
+                            </ListGroup.Item>
+                            {filteredTags.map((t) => (
+                                <ListGroup.Item key={t.id} className="py-1">
+                                    <Form.Check 
+                                        type="checkbox"
+                                        id={`tag-${t.id}`}
+                                        label={t.name}
+                                        checked={selectedTagIds.includes(t.id)}
+                                        onChange={() => handleTagToggle(t.id)}
+                                        className="m-0"
+                                    />
+                                </ListGroup.Item>
                             ))}
-                        </Form.Select>
-                    </div>
-                </div>
-            </Form>
+                        </ListGroup>
+                    </Card>
+                </Col>
 
-            {loading && (
-                <div className="text-center mt-4">
-                    <Spinner animation="border" variant="primary" />
-                    <p className="text-muted mt-2">Загрузка статей...</p>
-                </div>
-            )}
-            
-            {error && <Alert variant="danger">{error}</Alert>}
+                {/* ПРАВАЯ ЧАСТЬ */}
+                <Col md={9}>
+                    <Card className="mb-4 shadow-sm border-0 bg-light">
+                        <Card.Body className="position-relative">
+                            <Search className="position-absolute text-muted" style={{ left: 20, top: 15 }} />
+                            <Form.Control
+                                type="text"
+                                placeholder="Поиск по заголовку и содержимому..."
+                                value={query}
+                                style={{ paddingLeft: 35 }}
+                                onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+                            />
+                        </Card.Body>
+                    </Card>
 
-            {!loading && !error && data?.items?.length === 0 && (
-                <div className="text-center mt-5 text-muted">
-                    <h4>Статей не найдено</h4>
-                    <p>Попробуйте изменить запрос или создайте первую статью.</p>
-                </div>
-            )}
-
-            {!loading && !error && data?.items?.length > 0 && (
-                <>
-                    <div className="row g-3">
-                        {data.items.map((wiki) => (
-                            <div key={wiki.id} className="col-md-6 col-lg-4">
-                                <Card>
-                                    <Card.Body>
-                                        <Card.Title>{wiki.title}</Card.Title>
-                                        <Card.Subtitle className="mb-2 text-muted">
-                                            Автор: {wiki.authorLogin}
-                                        </Card.Subtitle>
-                                        {wiki.status === "PENDING_DELETION" && (
-                                            <span className="badge bg-danger mb-2">Ожидает удаления</span>
-                                        )}
-                                        <div className="mb-2">
-                                            {wiki.tags?.map((tag) => (
-                                                <span key={tag.id} className="badge bg-secondary me-1">
-                                                    {tag.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                        <Link to={`/wiki/${wiki.id}`} className="btn btn-sm btn-outline-primary">
-                                            Читать
-                                        </Link>
-                                    </Card.Body>
-                                </Card>
-                            </div>
-                        ))}
-                    </div>
-
-                    {data.totalPages > 1 && (
-                        <div className="mt-3 d-flex justify-content-center align-items-center">
-                            <Button disabled={!data.hasPrevious} onClick={() => setPage((p) => p - 1)}>
-                                Назад
-                            </Button>
-                            <span className="mx-3 fw-bold">
-                                {data.currentPage} / {data.totalPages}
-                            </span>
-                            <Button disabled={!data.hasNext} onClick={() => setPage((p) => p + 1)}>
-                                Вперёд
-                            </Button>
+                    {error && <div className="alert alert-danger">{error}</div>}
+                    {loading && <Spinner animation="border" />}
+                    
+                    {!loading && !error && data?.items?.length === 0 && (
+                        <div className="text-center text-muted py-5">
+                            <h4>Ничего не найдено</h4>
+                            <p>Попробуйте изменить категории или запрос.</p>
                         </div>
                     )}
-                </>
-            )}
+
+                    {!loading && !error && data?.items?.length > 0 && (
+                        <>
+                            <div className="d-flex flex-column gap-3">
+                                {data.items.map((wiki) => (
+                                    <Link key={wiki.id} to={`/wiki/${wiki.id}?search=${encodeURIComponent(query)}`} className="text-decoration-none">
+                                        <Card className="wiki-list-card h-100">
+                                            <Card.Body>
+                                                <div className="d-flex justify-content-between align-items-start mb-1">
+                                                    <h4 className="wiki-card-title mb-0">{wiki.title}</h4>
+                                                    {wiki.status === "PENDING_DELETION" && <Badge bg="danger">На удаление</Badge>}
+                                                </div>
+                                                <div className="text-muted small mb-2">
+                                                    Автор: <span className="fw-bold">{wiki.authorLogin}</span> · {new Date(wiki.createdAt).toLocaleDateString()}
+                                                </div>
+                                                {wiki.content && (
+                                                    <p className="text-secondary mb-3 wiki-card-text">
+                                                        {query ? (
+                                                            wiki.content.split(new RegExp(`(${query})`, "gi")).map((part, i) => 
+                                                                part.toLowerCase() === query.toLowerCase() 
+                                                                    ? <mark key={i} className="p-0 bg-warning">{part}</mark> 
+                                                                    : part
+                                                            )
+                                                        ) : (wiki.content)}
+                                                    </p>
+                                                )}
+                                                <div>
+                                                    {wiki.tags?.map((tag) => (
+                                                        <Badge key={tag.id} bg="light" text="dark" className="border me-1 fw-normal">{tag.name}</Badge>
+                                                    ))}
+                                                </div>
+                                            </Card.Body>
+                                        </Card>
+                                    </Link>
+                                ))}
+                            </div>
+
+                            {data.totalPages > 1 && (
+                                <div className="mt-4 d-flex justify-content-center">
+                                    <Pagination> ... </Pagination>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </Col>
+            </Row>
         </div>
     );
 };

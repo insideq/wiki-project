@@ -1,9 +1,9 @@
 import { useAuth } from "@shared/auth";
 import { UserButton } from "@shared/auth/ui";
 import { ToastMenu } from "@shared/toast/ui";
-import { Container, Nav, Navbar, NavbarBrand, NavDropdown } from "react-bootstrap";
+import { Button, Container, Nav, Navbar, NavbarBrand, NavDropdown } from "react-bootstrap";
 import { JournalText } from "react-bootstrap-icons";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import "./styles.css";
 
 export const Header = () => {
@@ -46,7 +46,13 @@ export const Header = () => {
                             )}
                         </Nav>
                         <ToastMenu className="ms-2" />
-                        <UserButton className="ms-3" />
+                        {!isAuthenticated ? (
+                            <Button as={Link} to="/login" variant="primary" className="ms-3">
+                                Вход / Регистрация
+                            </Button>
+                        ) : (
+                            <UserButton className="ms-3" />
+                        )}
                     </Navbar.Collapse>
                 </Container>
             </Navbar>

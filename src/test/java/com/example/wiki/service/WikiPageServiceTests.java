@@ -80,7 +80,7 @@ class WikiPageServiceTests {
 
     @Test
     void create_withTags_shouldReturnPageWithTags() {
-        final TagRs tag = tagService.create(new TagRq("Spring"));
+        final TagRs tag = tagService.create(new TagRq("Springolet"));
 
         final WikiPageRq rq = new WikiPageRq(
                 "With tags",
@@ -92,14 +92,14 @@ class WikiPageServiceTests {
         final WikiPageRs page = wikiPageService.create(rq, author);
 
         assertThat(page.tags()).hasSize(1);
-        assertThat(page.tags().get(0).name()).isEqualTo("Spring");
+        assertThat(page.tags().get(0).name()).isEqualTo("Springolet");
     }
 
     @Test
     void get_shouldReturnPage() {
         final WikiPageRs created = wikiPageService.create(defaultRq("Title", "Content"), author);
 
-        final WikiPageRs found = wikiPageService.get(created.id());
+        final WikiPageRs found = wikiPageService.get(created.id(), admin);
 
         assertThat(found.id()).isEqualTo(created.id());
         assertThat(found.title()).isEqualTo("Title");
@@ -108,7 +108,7 @@ class WikiPageServiceTests {
 
     @Test
     void get_shouldThrowIfNotFound() {
-        assertThatThrownBy(() -> wikiPageService.get(99999L))
+        assertThatThrownBy(() -> wikiPageService.get(99999L, admin))
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -118,7 +118,7 @@ class WikiPageServiceTests {
         wikiPageService.create(defaultRq("Java guide", "content"), author);
 
         final PageRs<WikiPageRs> result = wikiPageService.search(
-                null, null, PageRequest.of(0, 10));
+                null, null, admin, PageRequest.of(0, 10));
 
         assertThat(result.items()).hasSizeGreaterThanOrEqualTo(2);
     }
@@ -129,7 +129,7 @@ class WikiPageServiceTests {
         wikiPageService.create(defaultRq("Java guide", "content"), author);
 
         final PageRs<WikiPageRs> result = wikiPageService.search(
-                "Spring", null, PageRequest.of(0, 10));
+                "Spring", null, admin, PageRequest.of(0, 10));
 
         assertThat(result.items()).hasSize(1);
         assertThat(result.items().get(0).title()).isEqualTo("Spring guide");
@@ -193,7 +193,7 @@ class WikiPageServiceTests {
                 "Private",
                 "content",
                 WikiPageVisibility.PRIVATE,
-                WikiPageEditPolicy.OPEN,
+                WikiPageEditPolicy.OWNER_ONLY,
                 Set.of());
 
         final WikiPageRs created = wikiPageService.create(rq, author);
@@ -209,7 +209,7 @@ class WikiPageServiceTests {
         final WikiPageRs deleted = wikiPageService.delete(created.id());
 
         assertThat(deleted.id()).isEqualTo(created.id());
-        assertThatThrownBy(() -> wikiPageService.get(created.id()))
+        assertThatThrownBy(() -> wikiPageService.get(created.id(), admin))
                 .isInstanceOf(NotFoundException.class);
     }
 

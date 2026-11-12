@@ -1,0 +1,31 @@
+/* Контейнер формы */
+.wiki-edit-form {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    border: 1px solid #eaecef;
+    margin-bottom: 60px; /* Отступ снизу, чтобы sticky-бар не перекрывал контент */
+}
+
+/* Область с тегами */
+.tags-selector {
+    background-color: #f8f9fa;
+    border: 1px solid #eaecef;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+/* Кнопка сохранить */
+.sticky-save-bar {
+    position: sticky;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 15px 0;
+    border-top: 1px solid #eaecef;
+    display: flex;
+    gap: 15px;
+    z-index: 1000;
+    margin-top: 20px;
+}

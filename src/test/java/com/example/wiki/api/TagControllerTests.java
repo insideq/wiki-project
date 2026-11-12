@@ -61,19 +61,13 @@ class TagControllerTests {
     }
 
     @Test
-    void getAll_withoutAuth_shouldReturnUnauthorized() throws Exception {
-        mockMvc.perform(get(TAG_URL))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void create_asAdmin_shouldSucceed() throws Exception {
         final String body = objectMapper.writeValueAsString(new TagRq("new_tag_from_api"));
 
         mockMvc.perform(post(TAG_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("new_tag_from_api"));
     }
@@ -84,8 +78,8 @@ class TagControllerTests {
         final String body = objectMapper.writeValueAsString(new TagRq("forbidden_tag"));
 
         mockMvc.perform(post(TAG_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
                 .andExpect(status().isForbidden());
     }
 

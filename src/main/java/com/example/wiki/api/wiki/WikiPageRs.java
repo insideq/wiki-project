@@ -34,10 +34,26 @@ public record WikiPageRs(
     }
 
     public static WikiPageRs shortFrom(WikiPageEntity entity) {
+        String shortContent = null;
+        if (entity.getContent() != null) {
+            // Убираем markdown-разметку для картинок
+            shortContent = entity.getContent().replaceAll("!\\[[^\\]]*\\]\\([^\\)]*\\)", "[Изображение]");
+
+            // Убираем Markdown-символы (жирность, курсив, заголовки, зачеркивания, цитаты)
+            shortContent = shortContent.replaceAll("[*#~`>_-]", "");
+
+            // Убираем множественные пробелы и переносы
+            shortContent = shortContent.replaceAll("\\s+", " ").trim();
+
+            // Оставляем первые 150 символов
+            if (shortContent.length() > 150) {
+                shortContent = shortContent.substring(0, 150) + "...";
+            }
+        }
         return new WikiPageRs(
                 entity.getId(),
                 entity.getTitle(),
-                null,
+                shortContent,
                 entity.getAuthor().getLogin(),
                 entity.getVisibility().name(),
                 entity.getEditPolicy().name(),

@@ -29,13 +29,11 @@ public class TagController {
         this.tagService = tagService;
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public List<TagRs> getAll() {
         return tagService.getAll();
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
     public TagRs get(@PathVariable Long id) {
         return tagService.get(id);

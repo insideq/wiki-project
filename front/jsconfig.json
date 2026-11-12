@@ -3,9 +3,8 @@
         "jsx": "react-jsx",
         "target": "ES2020",
         "module": "ESNext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "allowSyntheticDefaultImports": true,
-        "baseUrl": ".",
         "checkJs": true,
         "paths": {
             "@entities/*": ["./src/entities/*"],

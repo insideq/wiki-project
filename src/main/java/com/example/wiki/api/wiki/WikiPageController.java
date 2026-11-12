@@ -1,5 +1,7 @@
 package com.example.wiki.api.wiki;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,20 +37,26 @@ public class WikiPageController {
         this.wikiPageService = wikiPageService;
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public PageRs<WikiPageRs> search(
             @RequestParam(required = false) String query,
-            @RequestParam(required = false) Long tagId,
+            @RequestParam(required = false) List<Long> tagIds,
             @RequestParam(defaultValue = "1") @Min(1) int page,
-            @RequestParam(defaultValue = "10") @Min(1) int size) {
-        return wikiPageService.search(query, tagId, PageHelper.toPageable(page, size));
+            @RequestParam(defaultValue = "10") @Min(1) int size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        final UserEntity user = principal != null ? principal.getUser() : null;
+        return wikiPageService.search(query, tagIds, user, PageHelper.toPageable(page, size));
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
-    public WikiPageRs get(@PathVariable Long id) {
-        return wikiPageService.get(id);
+    public WikiPageRs get(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        final UserEntity user = principal != null ? principal.getUser() : null;
+
+        return wikiPageService.get(id, user);
     }
 
     @PreAuthorize("isAuthenticated()")
